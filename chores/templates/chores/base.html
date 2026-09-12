@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Household Chores Manager{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+    <!-- Navigation Bar -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-200">
+                        <i class="fa-solid fa-broom text-lg"></i>
+                    </div>
+                    <div>
+                        <a href="{% url 'chores:list' %}" class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent hover:opacity-90 transition">
+                            ChoreMate
+                        </a>
+                        <span class="text-xs text-slate-400 block -mt-1">Household Task Manager</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <a href="{% url 'chores:create' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm hover:shadow transition">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>New Chore</span>
+                    </a>
+                    <a href="/admin/" target="_blank" class="text-slate-500 hover:text-slate-700 p-2 rounded-lg hover:bg-slate-100 transition text-sm flex items-center gap-1.5" title="Django Admin">
+                        <i class="fa-solid fa-gear"></i>
+                        <span class="hidden sm:inline">Admin</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="p-4 mb-4 text-sm rounded-xl flex items-center justify-between shadow-sm transition animate-fade-in
+                    {% if message.tags == 'success' %} bg-emerald-50 text-emerald-800 border border-emerald-200
+                    {% elif message.tags == 'error' %} bg-rose-50 text-rose-800 border border-rose-200
+                    {% else %} bg-indigo-50 text-indigo-800 border border-indigo-200 {% endif %}">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid 
+                            {% if message.tags == 'success' %} fa-circle-check text-emerald-600
+                            {% elif message.tags == 'error' %} fa-circle-xmark text-rose-600
+                            {% else %} fa-circle-info text-indigo-600 {% endif %} text-base"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500">
+        <div class="max-w-6xl mx-auto px-4">
+            <p>Shared Household Chores Manager &copy; 2026. Built with Django & Tailwind CSS.</p>
+        </div>
+    </footer>
+</body>
+</html>

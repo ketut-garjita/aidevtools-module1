@@ -1,0 +1,180 @@
+{% extends 'chores/base.html' %}
+
+{% block title %}Household Chores — ChoreMate{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header & Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Chores</p>
+                <p class="text-3xl font-bold text-slate-800 mt-1">{{ total_count }}</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-list-check"></i>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-amber-500">Pending</p>
+                <p class="text-3xl font-bold text-slate-800 mt-1">{{ pending_count }}</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Completed</p>
+                <p class="text-3xl font-bold text-slate-800 mt-1">{{ completed_count }}</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter & Search Controls -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-medium text-slate-400 mr-1">Status:</span>
+            <a href="?{% if current_member %}member={{ current_member }}{% endif %}" 
+               class="px-3 py-1.5 text-xs font-semibold rounded-lg transition {% if not current_status %}bg-slate-900 text-white shadow-sm{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+                All
+            </a>
+            <a href="?status=pending{% if current_member %}&member={{ current_member }}{% endif %}" 
+               class="px-3 py-1.5 text-xs font-semibold rounded-lg transition {% if current_status == 'pending' %}bg-amber-500 text-white shadow-sm{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+                Pending
+            </a>
+            <a href="?status=completed{% if current_member %}&member={{ current_member }}{% endif %}" 
+               class="px-3 py-1.5 text-xs font-semibold rounded-lg transition {% if current_status == 'completed' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+                Completed
+            </a>
+        </div>
+
+        {% if members %}
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-medium text-slate-400">Member:</span>
+            <form method="GET" class="inline">
+                {% if current_status %}<input type="hidden" name="status" value="{{ current_status }}">{% endif %}
+                <select name="member" onchange="this.form.submit()" class="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">All Roommates</option>
+                    {% for m in members %}
+                        <option value="{{ m }}" {% if current_member == m %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Chore Cards List -->
+    <div class="space-y-3">
+        {% if chores %}
+            {% for chore in chores %}
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col md:flex-row md:items-center justify-between gap-4 {% if chore.status == 'completed' %}opacity-75 bg-slate-50/50{% endif %}">
+                    <div class="flex-1 space-y-1">
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <h3 class="text-base font-bold text-slate-800 {% if chore.status == 'completed' %}line-through text-slate-500{% endif %}">
+                                {{ chore.title }}
+                            </h3>
+                            {% if chore.status == 'completed' %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                    <i class="fa-solid fa-circle-check text-[10px]"></i> Completed
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                                    <i class="fa-solid fa-clock text-[10px]"></i> Pending
+                                </span>
+                            {% endif %}
+
+                            {% if chore.due_date and chore.status == 'pending' and chore.due_date < today %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 text-rose-700">
+                                    <i class="fa-solid fa-triangle-exclamation text-[10px]"></i> Overdue
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% if chore.description %}
+                            <p class="text-sm text-slate-500 line-clamp-2">{{ chore.description }}</p>
+                        {% endif %}
+
+                        <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-2">
+                            {% if chore.assigned_member %}
+                                <span class="inline-flex items-center gap-1.5 font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
+                                    <i class="fa-solid fa-user text-indigo-500"></i>
+                                    <span>{{ chore.assigned_member }}</span>
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1 text-slate-400 italic">
+                                    <i class="fa-solid fa-user-slash"></i> Unassigned
+                                </span>
+                            {% endif %}
+
+                            {% if chore.due_date %}
+                                <span class="inline-flex items-center gap-1.5 {% if chore.status == 'pending' and chore.due_date < today %}text-rose-600 font-semibold{% endif %}">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    <span>Due: {{ chore.due_date|date:"M d, Y" }}</span>
+                                </span>
+                            {% endif %}
+
+                            {% if chore.completion_date %}
+                                <span class="inline-flex items-center gap-1.5 text-emerald-600 font-medium">
+                                    <i class="fa-solid fa-check-double"></i>
+                                    <span>Completed on {{ chore.completion_date|date:"M d, Y" }}</span>
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2 self-end md:self-center">
+                        {% if chore.status == 'pending' %}
+                            <form action="{% url 'chores:complete' chore.id %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow transition">
+                                    <i class="fa-solid fa-check"></i>
+                                    <span>Mark Done</span>
+                                </button>
+                            </form>
+                        {% else %}
+                            <span class="text-xs text-emerald-600 font-medium px-2 py-1 flex items-center gap-1">
+                                <i class="fa-solid fa-check-circle"></i> Done
+                            </span>
+                        {% endif %}
+
+                        <form action="{% url 'chores:delete' chore.id %}" method="POST" class="inline" onsubmit="return confirm('Delete this chore?');">
+                            {% csrf_token %}
+                            <button type="submit" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition text-xs" title="Delete Chore">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center">
+                <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto text-2xl mb-4">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">No chores found</h3>
+                <p class="text-sm text-slate-500 max-w-sm mx-auto mt-1 mb-6">
+                    {% if current_status or current_member %}
+                        No chores match your current filter criteria.
+                    {% else %}
+                        Your household has no chores yet. Add the first chore to get started!
+                    {% endif %}
+                </p>
+                <a href="{% url 'chores:create' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl shadow-md shadow-indigo-100 transition">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Create First Chore</span>
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
